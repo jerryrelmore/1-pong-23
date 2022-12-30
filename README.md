@@ -7,7 +7,7 @@ Author:
   - Fonts: https://github.com/TheRobotFactory/EightBit-Atari-Fonts
   - WAVs: 
     - wall/paddle collision: https://freesound.org/people/NoiseCollector/packs/254/
-    - score/out-of-bounds: https://freesound.org/people/Fupicat/sounds/475347/```
+    - score/out-of-bounds: https://freesound.org/people/Fupicat/sounds/475347/
 
 Usage:
   1. Clone repository: `git clone https://github.com/jerryrelmore/1-pong-23.git`

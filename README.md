@@ -23,5 +23,10 @@ Usage:
   4. ???
   5. Clean-up
 
+#BUGFIX:
+  1. If upper-left pixel of ball has a lower value than upper left pixel of the paddle, a collision isn't detected.
+  2. Ball can get "stuck" on paddle and bounce quickly back and forth then end up going behind the capturing paddle. NOTE:
+     May actually consider this a feature, not a bug.
+
 Gameplay screenshot:
 ![Gameplay Screenshot](/src/data/images/gameplay_screen.png?raw=true "Gamplay")

@@ -3,7 +3,7 @@ Name: pong.py
 Description: My simple implementation of classic Pong, as a fun holiday project.
 
 Author: 
-  - jelmore: code
+  - Code: jelmore
   - Fonts: https://github.com/TheRobotFactory/EightBit-Atari-Fonts
   - WAVs: 
     - wall/paddle collision: https://freesound.org/people/NoiseCollector/packs/254/

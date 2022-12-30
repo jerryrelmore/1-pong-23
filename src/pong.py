@@ -263,13 +263,20 @@ class Pong:
         if self.ball.left < 0 or self.ball.right > self.width:
             self._out_of_bounds_s.play()  # Sound effect
             # Increment score
-            if self._last_hit is None:
+            if self._last_hit is None:  # If ball is missed on first serve, no points
                 pass
-            elif self._last_hit == "p1":
-                self.player1.add_score()
-            elif self._last_hit == "p2":
+            elif self._last_hit == "p1" and self.ball.left < 0:
+                # If P1 hits the ball, but it goes behind them P2 gets the point
                 self.player2.add_score()
-
+            elif self._last_hit == "p2" and self.ball.left < 0:
+                # If P2 hits the ball and it goes past P1, P2 gets the point
+                self.player2.add_score()
+            elif self._last_hit == "p1" and self.ball.right > self.width:
+                # If P2 hits the ball, but it goes behind them P1 gets the point
+                self.player1.add_score()
+            elif self._last_hit == "p2" and self.ball.right > self.width:
+                # If P1 hits the ball and it goes past P2, P1 gets the point
+                self.player1.add_score()
             if self.player1.get_player_score() == 11:
                 print(f"PLAYER 1 WINS!")
                 self.game_over("p1")

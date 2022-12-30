@@ -22,7 +22,7 @@ Enjoy!
 
 #TODO:
   1. Implement Game Over screen.
-  ~~2. Implement ability to restart during the game.~~
+  2. ~~Implement ability to restart during the game.~~
   3. End game when first player scores 11 points.
   4. ???
   5. Code clean-up

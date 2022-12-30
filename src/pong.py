@@ -20,7 +20,8 @@ class Ball:
         self._screen_width, self._screen_height = 0, 0
         self.speed = []
 
-    def init_ball(self, left, top, width, height, screen_width, screen_height):
+    def init_ball(self, left: int, top: int, width: int, height: int,
+                  screen_width: int, screen_height: int) -> (Rect, list):
         self._ball_left_pixel, self._ball_top, self._ball_width, self._ball_height = left, top, width, height
         self._screen_width, self._screen_height = screen_width, screen_height
         self.ball = pygame.Rect(self._ball_left_pixel,
@@ -41,9 +42,6 @@ class Ball:
         print(f"self.speed: {self.speed}")
         return self.ball, self.speed
 
-    def update_ball_loc(self, left, top):
-        pass
-
 
 class Player:
     def __init__(self):
@@ -51,22 +49,22 @@ class Player:
         self.paddle = (None, None)
         self._left, self._top, self._width, self._height = 0, 0, 0, 0
 
-    def get_player_score(self):
+    def get_player_score(self) -> int:
         return self.score
 
-    def add_score(self):
+    def add_score(self) -> int:
         self.score += 1
         return self.score
 
-    def init_paddle(self, left, top, width, height):
+    def init_paddle(self, left: int, top: int, width: int, height: int) -> tuple:
         self._left, self._top, self._width, self._height = left, top, width, height
         self.paddle = (self._left, self._top, self._width, self._height)
         return self.paddle
 
-    def get_paddle_loc(self):
+    def get_paddle_loc(self) -> tuple:
         return self.paddle
 
-    def update_paddle_loc(self, top):
+    def update_paddle_loc(self, top: int) -> tuple:
         self._top = top  # Update top location
         # print(f'self._top: {self._top}')
         self.paddle = (self._left, self._top, self._width, self._height)
@@ -184,29 +182,11 @@ class Pong:
                               self._top_bar_top_pixel) * 1.025)
         self._ball_width = self._ball_height = self._center_line_width
         self.ball, self.speed = Ball().init_ball(self._ball_left_pixel,
-                                               self._ball_top,
-                                               self._ball_width,
-                                               self._ball_height,
-                                               self.width,
-                                               self.height)
-        """
-        self.ball = pygame.Rect(self.ball.init_ball(self._ball_left_pixel,
-                                                    self._ball_top,
-                                                    self._ball_width,
-                                                    self._ball_height))
-        self.speed = [random.choice([-(int(0.0075 * self.width)),
-                                     -(int(0.005 * self.width)),
-                                     int(0.005 * self.width),
-                                     int(0.0075 * self.width)]),
-                      random.choice([-(int(0.0075 * self.height)),
-                                     -(int(0.005 * self.height)),
-                                     0,
-                                     int(0.005 * self.height),
-                                     int(0.0075 * self.height)])]
-        print(f"self.ball: {self.ball}")
-        # print(f"type(self.ball): {type(self.ball)}")
-        print(f"self.speed: {self.speed}")
-        """
+                                                 self._ball_top,
+                                                 self._ball_width,
+                                                 self._ball_height,
+                                                 self.width,
+                                                 self.height)
 
         # Setup key repeat frequency (delay, interval)
         pygame.key.set_repeat(50, 10)
@@ -273,15 +253,24 @@ class Pong:
                 self.player1.add_score()
             elif self._last_hit == "p2":
                 self.player2.add_score()
+
+            if self.player1.get_player_score() == 11:
+                print(f"PLAYER 1 WINS!")
+                self.game_over("p1")
+            elif self.player2.get_player_score() == 11:
+                print(f"PLAYER 2 WINS!")
+                self.game_over("p2")
             time.sleep(0.5)
-            # If we've exceeded the left/right screen boundaries, re-init the ball
+            # If we've gone past the left/right screen boundaries, re-init the ball
             self.ball, self.speed = Ball().init_ball(self._ball_left_pixel,
                                                      self._ball_top,
                                                      self._ball_width,
                                                      self._ball_height,
                                                      self.width,
                                                      self.height)
-            #self.speed[0] = -self.speed[0]
+            # Re-init _last_hit so we don't inadvertently give a point to a player who hasn't hit the ball
+            self._last_hit = None
+            # self.speed[0] = -self.speed[0]
         # if self.ball.top < 0 or self.ball.bottom > self.height:
         # This seems to work better than pygame.Rect.colliderrect()
         if self.ball.top <= (self._y_bounds[0]) or self.ball.bottom > (self._y_bounds[1] + self._paddle_height):
@@ -363,14 +352,15 @@ class Pong:
     def on_cleanup(self):
         pygame.quit()
 
+    def game_over(self, winner: str):
+        # TODO: Add game over text and winner announcement
+        pass
+
     def on_execute(self):
         if self.on_init() is False:
             self._running = False
 
         while self._running:
-            # time.sleep(1)
-            # self.player1.add_score(1)
-
             # Set framerate to 30 fps
             self._main_clock.tick(30)
 
@@ -384,7 +374,7 @@ class Pong:
             # Render new screen
             self.on_render()
         self.on_cleanup()  # Only perform cleanup if we want/need to exit
-        sys.exit()
+        # sys.exit()
 
 
 if __name__ == "__main__":

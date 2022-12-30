@@ -16,7 +16,7 @@ Usage:
   4. Execute: `python3 pong.py`
   5. Player 1 uses `w` and `s` to move up or down, respectively.
   6. Player 2 uses `UP` and `DOWN` arrows for the same.
-  7. Press 'r' to restart the game.
+  7. Press `r` to restart the game.
   8. Press `q` or `ESC` to quit.
 Enjoy!
 

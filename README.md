@@ -15,7 +15,7 @@ Usage:
   3. Either setup a virtual env or install requirements as a system package, e.g.: `pip3 install -r ../requirements.txt`
   4. Execute: `python3 pong.py`
   5. Player 1 uses `w` and `s` to move up or down, respectively.
-  6. Player 2 uses `UP arrow` and `DOWN` arrow for the same.
+  6. Player 2 uses `UP` and `DOWN` arrows for the same.
   7. Press `q` or `ESC` to quit.
 Enjoy!
 

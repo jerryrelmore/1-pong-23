@@ -81,8 +81,8 @@ class Pong:
         self._bottom_bar, self._bottom_bar_top = 0, 0
         self._center_left_pixel, self._center_line_top, self._center_line_width, self._center_line_height, \
             self._center_line = 0, 0, 0, 0, 0
-        self.size = self.width, self.height = 858, 525  # Original Atari screen resolution
-        # self.size = self.width, self.height = 1920, 1080
+        # self.size = self.width, self.height = 858, 525  # Original Atari screen resolution
+        self.size = self.width, self.height = 1920, 1080
         self._main_clock = pygame.time.Clock()  # Set clock
         self._font = None
         self.player1, self.player2 = None, None
@@ -97,8 +97,13 @@ class Pong:
         self.ball = None
         self.speed = []
         self._ball_left_pixel, self._ball_top, self._ball_width, self._ball_height = 0, 0, 0, 0
+        self._paddle_bounce_s, self._wall_bounce_s, self._out_of_bounds_s = None, None, None
 
     def on_init(self):
+        # Setup pygame mixer
+        pygame.mixer.pre_init(44100, -16, 2, 512)
+
+        # Init pygame
         pygame.init()
         self._screen = pygame.display.set_mode(self.size, pygame.SHOWN | pygame.DOUBLEBUF)
         self._running = True
@@ -143,7 +148,7 @@ class Pong:
 
         # Setup font
         self._font_size = int(self.width * 0.075)
-        self._font = pygame.font.Font("fonts/EightBit-Atari-Block.ttf", self._font_size)
+        self._font = pygame.font.Font("data/fonts/EightBit-Atari-Block.ttf", self._font_size)
 
         # Setup score location
         self._p1_score_loc = (int(self.width / 5), int(self.height * 0.001))
@@ -190,6 +195,16 @@ class Pong:
 
         # Setup key repeat frequency (delay, interval)
         pygame.key.set_repeat(50, 10)
+
+        # Setup sounds
+        pygame.mixer.set_num_channels(32)
+        self._paddle_bounce_s = pygame.mixer.Sound('data/sfx/4365__noisecollector__pongblipa5.wav')
+        self._wall_bounce_s = pygame.mixer.Sound('data/sfx/4371__noisecollector__pongblipc4.wav')
+        self._out_of_bounds_s = pygame.mixer.Sound('data/sfx/475347__fupicat__videogame-death-sound.wav')
+        self._paddle_bounce_s.set_volume(0.6)
+        self._wall_bounce_s.set_volume(0.8)
+        self._out_of_bounds_s.set_volume(1.0)
+
 
     def on_event(self, event):
         if event.type == pygame.QUIT or \
@@ -246,6 +261,7 @@ class Pong:
             print(f"\nBall collided w/ player 2 at coords: {self.ball.x, self.ball.y}")
             print(f"Player 2 paddle collided w/ ball at paddle coords: {p2_paddle.x, p2_paddle.y}")
         if self.ball.left < 0 or self.ball.right > self.width:
+            self._out_of_bounds_s.play()  # Sound effect
             # Increment score
             if self._last_hit is None:
                 pass
@@ -260,7 +276,7 @@ class Pong:
             elif self.player2.get_player_score() == 11:
                 print(f"PLAYER 2 WINS!")
                 self.game_over("p2")
-            time.sleep(0.5)
+            time.sleep(2.5)
             # If we've gone past the left/right screen boundaries, re-init the ball
             self.ball, self.speed = Ball().init_ball(self._ball_left_pixel,
                                                      self._ball_top,
@@ -272,10 +288,14 @@ class Pong:
             self._last_hit = None
             # self.speed[0] = -self.speed[0]
         # if self.ball.top < 0 or self.ball.bottom > self.height:
+
+        # Wall bounce
         # This seems to work better than pygame.Rect.colliderrect()
         if self.ball.top <= (self._y_bounds[0]) or self.ball.bottom > (self._y_bounds[1] + self._paddle_height):
+            self._wall_bounce_s.play()  # Sound effect
             self.speed[1] = -self.speed[1]
         elif p1_paddle.collidepoint(self.ball.x - int(self.ball.width / 2), self.ball.y):
+            self._paddle_bounce_s.play()  # Sound effect
             self._last_hit = "p1"
             print(f'(p1_paddle.x - self.ball.x) / self.height = {(p1_paddle.x - self.ball.x) / self.height}')
             print(f'abs(self.speed[1] / self.height) = {abs(self.speed[1] / self.height)}')
@@ -294,6 +314,7 @@ class Pong:
             self.speed[0] = -self.speed[0]
             print(f'Update: self.speed = {self.speed}')
         elif p2_paddle.collidepoint(self.ball.x + self.ball.width, self.ball.y):
+            self._paddle_bounce_s.play()  # Sound effect
             self._last_hit = "p2"
             print(f'(p2_paddle.x - self.ball.x) / self.height = {(p2_paddle.x - self.ball.x) / self.height}')
             print(f'abs(self.speed[1] / self.height) = {abs(self.speed[1] / self.height)}')

@@ -16,15 +16,16 @@ Usage:
   4. Execute: `python3 pong.py`
   5. Player 1 uses `w` and `s` to move up or down, respectively.
   6. Player 2 uses `UP` and `DOWN` arrows for the same.
-  7. Press `q` or `ESC` to quit.
+  7. Press 'r' to restart the game.
+  8. Press `q` or `ESC` to quit.
 Enjoy!
 
 #TODO:
   1. Implement Game Over screen.
-  2. Implement ability to restart during the game.
+  ~~2. Implement ability to restart during the game.~~
   3. End game when first player scores 11 points.
   4. ???
-  5. Clean-up
+  5. Code clean-up
 
 #BUGFIX:
   1. If upper-left pixel of ball has a lower value than upper left pixel of the paddle, a collision isn't detected.

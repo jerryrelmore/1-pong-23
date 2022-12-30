@@ -25,4 +25,3 @@ Usage:
 
 Gameplay screenshot:
 ![Gameplay Screenshot](/src/data/images/gameplay_screen.png?raw=true "Gamplay")
-

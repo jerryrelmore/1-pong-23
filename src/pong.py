@@ -15,13 +15,31 @@ os.environ['SDL_VIDEO_CENTERED'] = '1'
 
 class Ball:
     def __init__(self):
-        self._left, self._top, self._width, self._height = 0, 0, 0, 0
-        self.ball = ()
+        self.ball = None
+        self._ball_left_pixel, self._ball_top, self._ball_width, self._ball_height = 0, 0, 0, 0
+        self._screen_width, self._screen_height = 0, 0
+        self.speed = []
 
-    def init_ball(self, left, top, width, height):
-        self._left, self._top, self._width, self._height = left, top, width, height
-        self.ball = (self._left, self._top, self._width, self._height)
-        return self.ball
+    def init_ball(self, left, top, width, height, screen_width, screen_height):
+        self._ball_left_pixel, self._ball_top, self._ball_width, self._ball_height = left, top, width, height
+        self._screen_width, self._screen_height = screen_width, screen_height
+        self.ball = pygame.Rect(self._ball_left_pixel,
+                                self._ball_top,
+                                self._ball_width,
+                                self._ball_height)
+        self.speed = [random.choice([-(int(0.0085 * self._screen_width)),
+                                     -(int(0.0075 * self._screen_width)),
+                                     int(0.0085 * self._screen_width),
+                                     int(0.0075 * self._screen_width)]),
+                      random.choice([-(int(0.0075 * self._screen_height)),
+                                     -(int(0.005 * self._screen_height)),
+                                     0,
+                                     int(0.005 * self._screen_height),
+                                     int(0.0075 * self._screen_height)])]
+        print(f"self.ball: {self.ball}")
+        # print(f"type(self.ball): {type(self.ball)}")
+        print(f"self.speed: {self.speed}")
+        return self.ball, self.speed
 
     def update_ball_loc(self, left, top):
         pass
@@ -161,11 +179,17 @@ class Pong:
         self._y_bounds = [self._top_bar_top_pixel + self._top_bar_height, self._bottom_bar_top - self._paddle_height]
 
         # Initialize and setup ball
-        self.ball = Ball()
         self._ball_left_pixel = self._center_left_pixel
         self._ball_top = int((((self._bottom_bar_top - (self._top_bar_top_pixel + self._top_bar_height)) / 2) +
                               self._top_bar_top_pixel) * 1.025)
         self._ball_width = self._ball_height = self._center_line_width
+        self.ball, self.speed = Ball().init_ball(self._ball_left_pixel,
+                                               self._ball_top,
+                                               self._ball_width,
+                                               self._ball_height,
+                                               self.width,
+                                               self.height)
+        """
         self.ball = pygame.Rect(self.ball.init_ball(self._ball_left_pixel,
                                                     self._ball_top,
                                                     self._ball_width,
@@ -182,6 +206,7 @@ class Pong:
         print(f"self.ball: {self.ball}")
         # print(f"type(self.ball): {type(self.ball)}")
         print(f"self.speed: {self.speed}")
+        """
 
         # Setup key repeat frequency (delay, interval)
         pygame.key.set_repeat(50, 10)
@@ -249,7 +274,14 @@ class Pong:
             elif self._last_hit == "p2":
                 self.player2.add_score()
             time.sleep(0.5)
-            self.speed[0] = -self.speed[0]
+            # If we've exceeded the left/right screen boundaries, re-init the ball
+            self.ball, self.speed = Ball().init_ball(self._ball_left_pixel,
+                                                     self._ball_top,
+                                                     self._ball_width,
+                                                     self._ball_height,
+                                                     self.width,
+                                                     self.height)
+            #self.speed[0] = -self.speed[0]
         # if self.ball.top < 0 or self.ball.bottom > self.height:
         # This seems to work better than pygame.Rect.colliderrect()
         if self.ball.top <= (self._y_bounds[0]) or self.ball.bottom > (self._y_bounds[1] + self._paddle_height):

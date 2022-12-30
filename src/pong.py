@@ -84,10 +84,12 @@ class Pong:
         # self.size = self.width, self.height = 858, 525  # Original Atari screen resolution
         self.size = self.width, self.height = 1920, 1080
         self._main_clock = pygame.time.Clock()  # Set clock
-        self._font = None
+        self._score_font, self._score_font_size = None, 0
+        self._restart_font, self._restart_font_size = None, 0
+        self._restart_text_1, self._restart_text_2 = None, None
+        self._restart_text_1_size, self._restart_text_2_size = (), ()
         self.player1, self.player2 = None, None
         self._last_hit = None
-        self._font_size = 0
         self._p1_score_loc, self._p2_score_loc = 0, 0
         self._p1_paddle_loc, self._p2_paddle_loc = (None, None), (None, None)
         self._y_bounds = []
@@ -97,7 +99,7 @@ class Pong:
         self.ball = None
         self.speed = []
         self._ball_left_pixel, self._ball_top, self._ball_width, self._ball_height = 0, 0, 0, 0
-        self._paddle_bounce_s, self._wall_bounce_s, self._out_of_bounds_s = None, None, None
+        self._paddle_bounce_s, self._wall_bounce_s, self._out_of_bounds_s, self._restart_s = None, None, None, None
 
     def on_init(self):
         # Setup pygame mixer
@@ -146,9 +148,11 @@ class Pong:
 
         pygame.display.set_caption("Pong-23")  # Set window title
 
-        # Setup font
-        self._font_size = int(self.width * 0.075)
-        self._font = pygame.font.Font("data/fonts/EightBit-Atari-Block.ttf", self._font_size)
+        # Setup fonts
+        self._score_font_size = int(self.width * 0.075)
+        self._score_font = pygame.font.Font("data/fonts/EightBit-Atari-Block.ttf", self._score_font_size)
+        self._restart_font_size = int(self.width * 0.1)
+        self._restart_font = pygame.font.Font("data/fonts/EightBit-Atari-Block.ttf", self._restart_font_size)
 
         # Setup score location
         self._p1_score_loc = (int(self.width / 5), int(self.height * 0.001))
@@ -201,15 +205,48 @@ class Pong:
         self._paddle_bounce_s = pygame.mixer.Sound('data/sfx/4365__noisecollector__pongblipa5.wav')
         self._wall_bounce_s = pygame.mixer.Sound('data/sfx/4371__noisecollector__pongblipc4.wav')
         self._out_of_bounds_s = pygame.mixer.Sound('data/sfx/475347__fupicat__videogame-death-sound.wav')
+        self._restart_s = pygame.mixer.Sound('data/sfx/538151__fupicat__8bit-fall.wav')
         self._paddle_bounce_s.set_volume(0.6)
         self._wall_bounce_s.set_volume(0.8)
         self._out_of_bounds_s.set_volume(1.0)
-
+        self._restart_s.set_volume(1.0)
 
     def on_event(self, event):
         if event.type == pygame.QUIT or \
            (event.type == KEYDOWN and (event.key == pygame.K_ESCAPE or event.key == pygame.K_q)):  # Quit if we press
             self._running = False
+            # TODO: Add an "are you sure?" prompt before booting us out of the game
+
+        # Restart game if 'r' is pressed
+        if event.type == KEYDOWN:
+            if event.key == K_r:
+                # Ask if we want to restart
+                self._restart_text_1 = self._restart_font.render(str("Restart?"), True, self._white)
+                self._restart_text_2 = self._restart_font.render(str("Y or N"), True, self._white)
+                self._restart_text_1_size = pygame.font.Font.size(self._restart_font, "Restart?")
+                self._restart_text_2_size = pygame.font.Font.size(self._restart_font, "Y or N")
+                self._screen.blit(self._restart_text_1,
+                                  ((self.width - self._restart_text_1_size[0]) / 2,
+                                   (self.height - self._restart_text_1_size[1]) / 4))
+                self._screen.blit(self._restart_text_2,
+                                  ((self.width - self._restart_text_2_size[0]) / 2,
+                                   (self.height - self._restart_text_2_size[1]) / 1.75))
+                pygame.display.update()
+
+                # Wait for Y or N to prompted restart, if Y, restart game, if N, continue existing game
+                done = False
+                while not done:
+                    for event in pygame.event.get():
+                        if event.type == KEYDOWN:
+                            if event.key == K_y:  # (y)es, quit
+                                done = True
+                                self._restart_s.play()  # Play restart sound
+                                self.on_init()
+                            elif event.key == K_n:  # (n)o, continue current game
+                                done = True
+                            elif event.key == K_q or event.key == K_ESCAPE:  # (q)uit or ESC
+                                done = True
+                                self.on_cleanup()
 
         keys = pygame.key.get_pressed()
         # if event.type == KEYDOWN and event.key == pygame.K_w:  # Player 1 keys: w, s (up, down)
@@ -365,8 +402,8 @@ class Pong:
         pygame.draw.rect(self._screen, self._p2_color, pygame.Rect(self.player2.get_paddle_loc()))
 
         # Show player scores
-        player1_score = self._font.render(str(self.player1.get_player_score()), True, self._p1_color)
-        player2_score = self._font.render(str(self.player2.get_player_score()), True, self._p2_color)
+        player1_score = self._score_font.render(str(self.player1.get_player_score()), True, self._p1_color)
+        player2_score = self._score_font.render(str(self.player2.get_player_score()), True, self._p2_color)
         self._screen.blit(player1_score, self._p1_score_loc)
         self._screen.blit(player2_score, self._p2_score_loc)
 

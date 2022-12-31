@@ -6,8 +6,9 @@ Author:
   - Code: jelmore
   - Fonts: https://github.com/TheRobotFactory/EightBit-Atari-Fonts
   - WAVs: 
-    - wall/paddle collision: https://freesound.org/people/NoiseCollector/packs/254/
-    - score/out-of-bounds: https://freesound.org/people/Fupicat/sounds/475347/
+    - wall/paddle collision: https://freesound.org/people/NoiseCollector/
+    - score/out-of-bounds: https://freesound.org/people/Fupicat/
+    - start game: https://freesound.org/people/iut_Paris8/
 
 Usage:
   1. Clone repository: `git clone https://github.com/jerryrelmore/1-pong-23.git`
@@ -21,9 +22,9 @@ Usage:
 Enjoy!
 
 #TODO:
-  1. Implement Game Over screen.
+  1. ~~Implement Game Over screen.~~
   2. ~~Implement ability to restart during the game.~~
-  3. End game when first player scores 11 points.
+  3. ~~End game when first player scores 11 points.~~
   4. ???
   5. Code clean-up
 

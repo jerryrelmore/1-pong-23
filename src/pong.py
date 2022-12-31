@@ -74,6 +74,7 @@ class Player:
 class Pong:
     def __init__(self):
         self._running = True
+        self._first_run = True
         self._screen = None
         self._yellow, self._white, self._p1_color, self._p2_color, self._ball_color = (), (), (), (), ()
         self._left_top_bar_pixel, self._right_top_bar_pixel, self._top_bar_top_pixel, \
@@ -88,6 +89,9 @@ class Pong:
         self._restart_font, self._restart_font_size = None, 0
         self._restart_text_1, self._restart_text_2 = None, None
         self._restart_text_1_size, self._restart_text_2_size = (), ()
+        self._winner_font, self._winner_font_size = None, 0
+        self._winner_text_1, self._winner_text_2 = None, None
+        self._winner_text_1_size, self._winner_text_2_size = (), ()
         self.player1, self.player2 = None, None
         self._last_hit = None
         self._p1_score_loc, self._p2_score_loc = 0, 0
@@ -99,7 +103,8 @@ class Pong:
         self.ball = None
         self.speed = []
         self._ball_left_pixel, self._ball_top, self._ball_width, self._ball_height = 0, 0, 0, 0
-        self._paddle_bounce_s, self._wall_bounce_s, self._out_of_bounds_s, self._restart_s = None, None, None, None
+        self._paddle_bounce_s, self._wall_bounce_s, self._out_of_bounds_s, \
+            self._restart_s, self._start_game_s = None, None, None, None, None
 
     def on_init(self):
         # Setup pygame mixer
@@ -149,10 +154,15 @@ class Pong:
         pygame.display.set_caption("Pong-23")  # Set window title
 
         # Setup fonts
+        # Scores
         self._score_font_size = int(self.width * 0.075)
         self._score_font = pygame.font.Font("data/fonts/EightBit-Atari-Block.ttf", self._score_font_size)
+        # Restart text
         self._restart_font_size = int(self.width * 0.1)
         self._restart_font = pygame.font.Font("data/fonts/EightBit-Atari-Block.ttf", self._restart_font_size)
+        # Game over/winner text
+        self._winner_font_size = int(self.width * 0.045)
+        self._winner_font = pygame.font.Font("data/fonts/EightBit-Atari-Block.ttf", self._winner_font_size)
 
         # Setup score location
         self._p1_score_loc = (int(self.width / 5), int(self.height * 0.001))
@@ -202,14 +212,16 @@ class Pong:
 
         # Setup sounds
         pygame.mixer.set_num_channels(32)
+        self._start_game_s = pygame.mixer.Sound('data/sfx/263757__iut-paris8__rodriguez-benjamin-2014-2015-ufo.mp3')
         self._paddle_bounce_s = pygame.mixer.Sound('data/sfx/4365__noisecollector__pongblipa5.wav')
         self._wall_bounce_s = pygame.mixer.Sound('data/sfx/4371__noisecollector__pongblipc4.wav')
         self._out_of_bounds_s = pygame.mixer.Sound('data/sfx/475347__fupicat__videogame-death-sound.wav')
         self._restart_s = pygame.mixer.Sound('data/sfx/538151__fupicat__8bit-fall.wav')
+        self._start_game_s.set_volume(0.7)
         self._paddle_bounce_s.set_volume(0.6)
-        self._wall_bounce_s.set_volume(0.8)
-        self._out_of_bounds_s.set_volume(1.0)
-        self._restart_s.set_volume(1.0)
+        self._wall_bounce_s.set_volume(0.7)
+        self._out_of_bounds_s.set_volume(0.8)
+        self._restart_s.set_volume(0.7)
 
     def on_event(self, event):
         if event.type == pygame.QUIT or \
@@ -241,6 +253,7 @@ class Pong:
                             if event.key == K_y:  # (y)es, quit
                                 done = True
                                 self._restart_s.play()  # Play restart sound
+                                time.sleep(2)
                                 self.on_init()
                             elif event.key == K_n:  # (n)o, continue current game
                                 done = True
@@ -284,9 +297,11 @@ class Pong:
                 self.player2.update_paddle_loc(self.player2.get_paddle_loc()[1] + self._paddle_move_incr)
 
     def on_loop(self):
-        # Move ball
-        self.ball = self.ball.move(self.speed)
-        # print(f"Game loop: self.ball: {self.ball}")
+        if not self._first_run:
+            # As long as we're not the first run, move ball - if we move during first run while the start song
+            # plays, the ball will indicate which direction it's moving. We don't want that.
+            self.ball = self.ball.move(self.speed)
+            # print(f"Game loop: self.ball: {self.ball}")
 
         # Test if the ball has collided w/ either paddle or the top/bottom walls
         p1_paddle = pygame.Rect(self.player1.get_paddle_loc())
@@ -320,7 +335,9 @@ class Pong:
             elif self.player2.get_player_score() == 11:
                 print(f"PLAYER 2 WINS!")
                 self.game_over("p2")
+            # Wait a bit if ball goes out of bounds before re-launching it
             time.sleep(2.5)
+
             # If we've gone past the left/right screen boundaries, re-init the ball
             self.ball, self.speed = Ball().init_ball(self._ball_left_pixel,
                                                      self._ball_top,
@@ -414,17 +431,56 @@ class Pong:
         # pygame.display.flip()
         pygame.display.update()
 
+        # Play start game sound and pause screen if first run
+        if self._first_run:
+            self._start_game_s.play()
+            time.sleep(4)  # Let start game ditty finish
+            self._first_run = False
+
     def on_cleanup(self):
         pygame.quit()
 
     def game_over(self, winner: str):
-        # TODO: Add game over text and winner announcement
-        pass
+        # Refresh screen so score is updated
+        self.on_render()
+
+        # Setup tags to be displayed
+        if winner == "p1":
+            tag = "Player 1 wins!"
+        else:
+            tag = "Player 2 wins!"
+        question = "Play again? Y or N"
+        self._winner_text_1 = self._winner_font.render(tag, True, self._white)
+        self._winner_text_2 = self._winner_font.render(question, True, self._white)
+        self._winner_text_1_size = pygame.font.Font.size(self._winner_font, tag)
+        self._winner_text_2_size = pygame.font.Font.size(self._winner_font, question)
+        self._screen.blit(self._winner_text_1,
+                          ((self.width - self._winner_text_1_size[0]) / 2,
+                           (self.height - self._winner_text_1_size[1]) / 4))
+        self._screen.blit(self._winner_text_2,
+                          ((self.width - self._winner_text_2_size[0]) / 2,
+                           (self.height - self._winner_text_2_size[1]) / 1.75))
+        pygame.display.update()
+
+        # Wait for Y or N to continue game, if Y, start new game, if N, exit game
+        done = False
+        while not done:
+            for event in pygame.event.get():
+                if event.type == KEYDOWN:
+                    if event.key == K_y:  # (y)es, play new game
+                        done = True
+                        # Re-init the game w/ new instance
+                        self.on_cleanup()
+                        new_game = Pong()
+                        new_game.on_execute()
+                    elif event.key == K_n or event.key == K_q or event.key == K_ESCAPE:  # exit game
+                        self._running = False  # Takes a bit longer to shut down but shuts down more cleanly this way
+                        done = True
+                        # self.on_cleanup()
 
     def on_execute(self):
         if self.on_init() is False:
             self._running = False
-
         while self._running:
             # Set framerate to 30 fps
             self._main_clock.tick(30)
